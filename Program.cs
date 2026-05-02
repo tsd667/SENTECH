@@ -9,18 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Configuration du DbContext avec PostgreSQL (Npgsql)
 builder.Services.AddDbContext<GrhDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Injection de dépendances - Repositories
 builder.Services.AddScoped<IEmployeRepository, EmployeRepository>();
 builder.Services.AddScoped<IDepartementRepository, DepartementRepository>();
 builder.Services.AddScoped<IContratRepository, ContratRepository>();
 builder.Services.AddScoped<IPosteRepository, PosteRepository>();
 builder.Services.AddScoped<ICongeRepository, CongeRepository>();
 
-// Injection de dépendances - Services métier
 builder.Services.AddScoped<IEmployeService, EmployeService>();
 builder.Services.AddScoped<IDepartementService, DepartementService>();
 
@@ -41,7 +38,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Appliquer les migrations automatiquement
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -49,7 +45,7 @@ using (var scope = app.Services.CreateScope())
         var db = scope.ServiceProvider.GetRequiredService<GrhDbContext>();
         db.Database.Migrate();
     }
-    catch { /* La DB n'est peut-être pas encore dispo */ }
+    catch { /* */ }
 }
 
 app.Run();
