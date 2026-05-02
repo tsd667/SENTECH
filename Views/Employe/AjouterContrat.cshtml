@@ -1,0 +1,118 @@
+@model GRH_SENTECH.ViewModels.ContratViewModel
+@{
+    ViewData["Title"] = "Ajouter un Contrat";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-file-contract mr-2 text-success"></i>Nouveau Contrat</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mr-1"></i> Retour</a>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-user-circle mr-2"></i>
+    Ajout d'un contrat pour : <strong>@Model.EmployeNomComplet</strong>
+</div>
+
+<div class="card">
+    <div class="card-header"><i class="fas fa-pen mr-2"></i> Informations du contrat</div>
+    <div class="card-body">
+        <form asp-action="AjouterContrat" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="EmployeId" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <!-- Règles de gestion affichées -->
+            <div class="alert alert-warning small mb-4">
+                <strong><i class="fas fa-gavel mr-1"></i> Règles de gestion :</strong>
+                <ul class="mb-0 mt-1">
+                    <li><strong>RG01</strong> : Un seul contrat actif simultanément</li>
+                    <li><strong>RG02</strong> : Le salaire doit être dans la fourchette du poste</li>
+                    <li><strong>RG07</strong> : Le budget du département ne doit pas être dépassé</li>
+                </ul>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="TypeContrat" class="font-weight-bold"></label>
+                        <select asp-for="TypeContrat" class="form-control"
+                                asp-items="Html.GetEnumSelectList<GRH_SENTECH.Entity.TypeContrat>()"></select>
+                        <span asp-validation-for="TypeContrat" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="PosteId" class="font-weight-bold"></label>
+                        <select asp-for="PosteId" asp-items="Model.Postes" class="form-control">
+                            <option value="">-- Sélectionner un poste --</option>
+                        </select>
+                        <span asp-validation-for="PosteId" class="text-danger small"></span>
+                        <small class="text-muted">La fourchette salariale s'affiche dans la liste</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="DateDebut" class="font-weight-bold"></label>
+                        <input asp-for="DateDebut" class="form-control" type="date" />
+                        <span asp-validation-for="DateDebut" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="DateFin" class="font-weight-bold"></label>
+                        <input asp-for="DateFin" class="form-control" type="date" />
+                        <span asp-validation-for="DateFin" class="text-danger small"></span>
+                        <small class="text-muted">Laisser vide pour CDI</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="SalaireBase" class="font-weight-bold"></label>
+                        <div class="input-group">
+                            <input asp-for="SalaireBase" class="form-control" type="number" min="0" step="1000" />
+                            <div class="input-group-append">
+                                <span class="input-group-text">FCFA</span>
+                            </div>
+                        </div>
+                        <span asp-validation-for="SalaireBase" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="custom-control custom-switch">
+                    <input asp-for="PeriodeEssai" class="custom-control-input" type="checkbox" id="periodeEssai" />
+                    <label class="custom-control-label" for="periodeEssai">Période d'essai</label>
+                </div>
+            </div>
+
+            <hr />
+            <div class="d-flex justify-content-end">
+                <a asp-action="Index" class="btn btn-outline-secondary mr-2">
+                    <i class="fas fa-times mr-1"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save mr-1"></i> Enregistrer le contrat
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Masquer/afficher DateFin selon le type de contrat
+        document.getElementById('TypeContrat').addEventListener('change', function() {
+            var dateFin = document.getElementById('DateFin').closest('.form-group');
+            if (this.value === '0') { // CDI = 0
+                dateFin.style.opacity = '0.4';
+            } else {
+                dateFin.style.opacity = '1';
+            }
+        });
+    </script>
+}

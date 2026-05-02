@@ -1,0 +1,136 @@
+@model GRH_SENTECH.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h2 class="mb-4"><i class="fas fa-tachometer-alt mr-2 text-primary"></i>Dashboard GRH SENTECH</h2>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Employés actifs</h6>
+                        <h2 class="mb-0">@Model.TotalEmployes</h2>
+                    </div>
+                    <i class="fas fa-users fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-primary border-top-0">
+                <a asp-controller="Employe" asp-action="Index" class="text-white small">
+                    Voir les employés <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Départements</h6>
+                        <h2 class="mb-0">@Model.TotalDepartements</h2>
+                    </div>
+                    <i class="fas fa-sitemap fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-success border-top-0">
+                <a asp-controller="Departement" asp-action="Index" class="text-white small">
+                    Voir les départements <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Contrats CDI</h6>
+                        <h2 class="mb-0">@Model.TotalContratsCDI</h2>
+                    </div>
+                    <i class="fas fa-file-contract fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Congés en attente</h6>
+                        <h2 class="mb-0">@Model.CongesEnAttente</h2>
+                    </div>
+                    <i class="fas fa-calendar-times fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contrats par type -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-pie mr-2"></i> Répartition des contrats
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-around text-center py-2">
+                    <div>
+                        <div class="h4 text-success">@Model.TotalContratsCDI</div>
+                        <small class="text-muted">CDI</small>
+                    </div>
+                    <div>
+                        <div class="h4 text-warning">@Model.TotalContratsCDD</div>
+                        <small class="text-muted">CDD</small>
+                    </div>
+                    <div>
+                        <div class="h4 text-info">@Model.TotalStages</div>
+                        <small class="text-muted">Stages</small>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height:12px;">
+                    @{
+                        int total = Model.TotalContratsCDI + Model.TotalContratsCDD + Model.TotalStages;
+                        int pctCdi = total > 0 ? (int)(Model.TotalContratsCDI * 100.0 / total) : 0;
+                        int pctCdd = total > 0 ? (int)(Model.TotalContratsCDD * 100.0 / total) : 0;
+                        int pctStage = total > 0 ? 100 - pctCdi - pctCdd : 0;
+                    }
+                    <div class="progress-bar bg-success" style="width:@pctCdi%">CDI</div>
+                    <div class="progress-bar bg-warning" style="width:@pctCdd%">CDD</div>
+                    <div class="progress-bar bg-info" style="width:@pctStage%">Stage</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-clock mr-2"></i> Derniers employés enregistrés
+            </div>
+            <div class="list-group list-group-flush">
+                @foreach (var emp in Model.DerniersEmployes)
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>@emp.NomComplet</strong>
+                            <br /><small class="text-muted">@emp.DepartementNom — @emp.DateEmbauche.ToString("dd/MM/yyyy")</small>
+                        </div>
+                        @if (emp.ContratActifType == "CDI")
+                        { <span class="badge badge-success">CDI</span> }
+                        else if (emp.ContratActifType == "CDD")
+                        { <span class="badge badge-warning text-dark">CDD</span> }
+                        else if (emp.ContratActifType == "Stage")
+                        { <span class="badge badge-info">Stage</span> }
+                        else
+                        { <span class="badge badge-danger">Sans contrat</span> }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

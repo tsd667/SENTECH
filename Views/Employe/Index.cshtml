@@ -1,0 +1,188 @@
+@model GRH_SENTECH.ViewModels.EmployeListViewModel
+@{
+    ViewData["Title"] = "Liste des Employés";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-users mr-2 text-primary"></i>Gestion des Employés</h2>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fas fa-plus mr-1"></i> Nouvel Employé
+    </a>
+</div>
+
+<!-- Filtres et recherche - comme montré dans le cours -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="form-inline">
+            <div class="input-group mr-3">
+                <input type="text" name="search" value="@Model.SearchTerm"
+                       class="form-control" placeholder="Rechercher (nom, matricule, email...)" style="width:300px;" />
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <select name="departementId" class="form-control mr-3" onchange="this.form.submit()">
+                <option value="">-- Tous les départements --</option>
+                @if (Model.Departements != null)
+                {
+                    foreach (var dept in Model.Departements)
+                    {
+                        <option value="@dept.Value" selected="@(dept.Value == Model.DepartementFilter?.ToString())">
+                            @dept.Text
+                        </option>
+                    }
+                }
+            </select>
+            @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.DepartementFilter.HasValue)
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-times mr-1"></i>Réinitialiser
+                </a>
+            }
+        </form>
+    </div>
+</div>
+
+<!-- Table des employés -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-list mr-2"></i>Liste des employés</span>
+        <small>Total : @Model.TotalCount employés actifs</small>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Matricule</th>
+                        <th>Nom Complet</th>
+                        <th>Email</th>
+                        <th>Département</th>
+                        <th>Poste Actuel</th>
+                        <th>Contrat</th>
+                        <th>Salaire</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Employes.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                Aucun employé trouvé.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var emp in Model.Employes)
+                        {
+                            <tr>
+                                <td><strong>@emp.Matricule</strong></td>
+                                <td>
+                                    <i class="fas fa-user-circle text-secondary mr-1"></i>
+                                    @emp.NomComplet
+                                </td>
+                                <td><small>@emp.Email</small></td>
+                                <td>@emp.DepartementNom</td>
+                                <td>@(emp.PosteActuel ?? "-")</td>
+                                <td>
+                                    @if (emp.ContratActifType == "CDI")
+                                    {
+                                        <span class="badge badge-success">CDI</span>
+                                    }
+                                    else if (emp.ContratActifType == "CDD")
+                                    {
+                                        <span class="badge badge-warning text-dark">CDD</span>
+                                    }
+                                    else if (emp.ContratActifType == "Stage")
+                                    {
+                                        <span class="badge badge-info">Stage</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Sans contrat</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (emp.SalaireActuel.HasValue)
+                                    {
+                                        @emp.SalaireActuel.Value.ToString("N0") <text> FCFA</text>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <a asp-action="Details" asp-route-id="@emp.Id"
+                                       class="btn btn-sm btn-info" title="Détails">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@emp.Id"
+                                       class="btn btn-sm btn-warning" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-action="AjouterContrat" asp-route-id="@emp.Id"
+                                       class="btn btn-sm btn-success" title="Ajouter Contrat">
+                                        <i class="fas fa-file-contract"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@emp.Id"
+                                       class="btn btn-sm btn-danger" title="Supprimer"
+                                       onclick="return confirm('Confirmer la suppression ?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination côté serveur - comme montré dans le cours -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    Page @Model.Page sur @Model.TotalPages
+                    (@((Model.Page - 1) * Model.Limit + 1) - @Math.Min(Model.Page * Model.Limit, Model.TotalCount) sur @Model.TotalCount)
+                </small>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-page="@(Model.Page - 1)"
+                               asp-route-search="@Model.SearchTerm"
+                               asp-route-departementId="@Model.DepartementFilter">
+                                <i class="fas fa-chevron-left"></i> Précédent
+                            </a>
+                        </li>
+                        @for (int i = Math.Max(1, Model.Page - 2); i <= Math.Min(Model.TotalPages, Model.Page + 2); i++)
+                        {
+                            <li class="page-item @(i == Model.Page ? "active" : "")">
+                                <a class="page-link" asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-search="@Model.SearchTerm"
+                                   asp-route-departementId="@Model.DepartementFilter">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-page="@(Model.Page + 1)"
+                               asp-route-search="@Model.SearchTerm"
+                               asp-route-departementId="@Model.DepartementFilter">
+                                Suivant <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+</div>
